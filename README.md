@@ -23,3 +23,17 @@ Functions include:
 - java-tron full node API support
 
 For more informations refer to : [trident-java document](https://developers.tron.network/docs/trident-java)
+
+## trident-python
+
+trident-py is a lightweight Python SDK that includes libraries for working with TRON network.
+
+Functions include:
+
+- Offline address generation
+
+- Offline transaction signature 
+
+- Full node API support
+
+For more informations refer to : [trident-py document](https://developers.tron.network/docs/trident-python)

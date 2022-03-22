@@ -5,7 +5,14 @@ from trident.keys import PrivateKey
 from trident.tron import Transaction
 from trident.async_tron import AsyncTransaction
 import pytest
+import os
 
+# make sure the testing account matches the private key
+# and the balance is greater than 0
+# each test run will send a few 0.000001 TRX to TESTING_ACCOUNT2 on shasta test network
+TESTING_ACCOUNT = os.getenv("TRON_TESTING_ACCOUNT")
+TESTING_KEY = os.getenv("TRON_TESTING_KEY")
+TESTING_ACCOUNT2 = os.getenv("TRON_TESTING_ACCOUNT2")
 
 def test_client_keygen():
     client = Tron()
@@ -21,13 +28,13 @@ def test_async_client_keygen():
 
 
 def test_client():
-    client = Tron(network='nile')
+    client = Tron(network='shasta')
 
     print(client)
-    priv_key = PrivateKey(bytes.fromhex("8888888888888888888888888888888888888888888888888888888888888888"))
+    priv_key = PrivateKey(bytes.fromhex(TESTING_KEY))
 
     txn = (
-        client.trx.transfer("TJzXt1sZautjqXnpjQT4xSCBHNSYgBkDr3", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1_000)
+        client.trx.transfer(TESTING_ACCOUNT, TESTING_ACCOUNT2, 1_000)
         .memo("test memo")
         .fee_limit(100_000_000)
         .build()
@@ -40,10 +47,10 @@ def test_client():
 
 
 def test_client_sign_offline():
-    client = Tron(network='nile')
-    priv_key = PrivateKey(bytes.fromhex("8888888888888888888888888888888888888888888888888888888888888888"))
+    client = Tron(network='shasta')
+    priv_key = PrivateKey(bytes.fromhex(TESTING_KEY))
     tx = client.trx.transfer(
-        "TJzXt1sZautjqXnpjQT4xSCBHNSYgBkDr3", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1
+        TESTING_ACCOUNT, TESTING_ACCOUNT2, 1
     ).memo("test memo").fee_limit(100_000_000).build()
     tx_j = tx.to_json()
     # offline
@@ -57,10 +64,10 @@ def test_client_sign_offline():
 
 @pytest.mark.asyncio
 async def test_async_client_sign_offline():
-    async with AsyncTron(network='nile') as client:
-        priv_key = PrivateKey(bytes.fromhex("8888888888888888888888888888888888888888888888888888888888888888"))
+    async with AsyncTron(network='shasta') as client:
+        priv_key = PrivateKey(bytes.fromhex(TESTING_KEY))
         tx = await client.trx.transfer(
-            "TJzXt1sZautjqXnpjQT4xSCBHNSYgBkDr3", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1
+            TESTING_ACCOUNT, TESTING_ACCOUNT2, 1
         ).memo("test memo").fee_limit(100_000_000).build()
         tx_j = tx.to_json()
         # offline
@@ -73,10 +80,10 @@ async def test_async_client_sign_offline():
 
 
 def test_client_update_tx():
-    client = Tron(network='nile')
-    priv_key = PrivateKey(bytes.fromhex("8888888888888888888888888888888888888888888888888888888888888888"))
+    client = Tron(network='shasta')
+    priv_key = PrivateKey(bytes.fromhex(TESTING_KEY))
     tx: Transaction = client.trx.transfer(
-        "TJzXt1sZautjqXnpjQT4xSCBHNSYgBkDr3", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1
+        TESTING_ACCOUNT, TESTING_ACCOUNT2, 1
     ).memo("test memo").fee_limit(100_000_000).build()
     tx.sign(priv_key)
     tx.broadcast()
@@ -92,12 +99,12 @@ def test_client_update_tx():
 
 @pytest.mark.asyncio
 async def test_async_client():
-    async with AsyncTron(network='nile') as client:
+    async with AsyncTron(network='shasta') as client:
         print(client)
-        priv_key = PrivateKey(bytes.fromhex("8888888888888888888888888888888888888888888888888888888888888888"))
+        priv_key = PrivateKey(bytes.fromhex(TESTING_KEY))
 
         txb = (
-            client.trx.transfer("TJzXt1sZautjqXnpjQT4xSCBHNSYgBkDr3", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1_000)
+            client.trx.transfer(TESTING_ACCOUNT, TESTING_ACCOUNT2, 1_000)
             .memo("test memo")
             .fee_limit(100_000_000)
         )
@@ -113,17 +120,17 @@ async def test_async_client():
 async def test_async_manual_client():
     from httpx import AsyncClient, Timeout, Limits
     from trident.providers.async_http import AsyncHTTPProvider
-    from trident.defaults import CONF_NILE
+    from trident.defaults import CONF_shasta
 
     _http_client = AsyncClient(
         limits=Limits(max_connections=100, max_keepalive_connections=20), timeout=Timeout(timeout=10, connect=5, read=5)
     )
-    provider = AsyncHTTPProvider(CONF_NILE, client=_http_client)
+    provider = AsyncHTTPProvider(CONF_shasta, client=_http_client)
     client = AsyncTron(provider=provider)
 
-    priv_key = PrivateKey(bytes.fromhex("8888888888888888888888888888888888888888888888888888888888888888"))
+    priv_key = PrivateKey(bytes.fromhex(TESTING_KEY))
     txb = (
-        client.trx.transfer("TJzXt1sZautjqXnpjQT4xSCBHNSYgBkDr3", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1_000)
+        client.trx.transfer(TESTING_ACCOUNT, TESTING_ACCOUNT2, 1_000)
         .memo("test memo")
         .fee_limit(1_000_000)
     )
@@ -185,13 +192,13 @@ async def test_async_client_get_contract():
 
 
 def test_client_transfer_trc10():
-    client = Tron(network='nile')
+    client = Tron(network='shasta')
 
     priv_key = PrivateKey(bytes.fromhex("ebf7c9cad1ca710553c22669fd3c7c70832e7024c1a32da69bbc5ad19dcc8992"))
 
     txn = (
         client.trx.asset_transfer(
-            "TGxv9UXRNMh4E6b33iuH1pqJfBffz6hXnV", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1_000000, token_id=1000047
+            "TGxv9UXRNMh4E6b33iuH1pqJfBffz6hXnV", TESTING_ACCOUNT2, 1_000000, token_id=1000047
         )
         .memo("test transfer coin")
         .fee_limit(0)
@@ -206,12 +213,12 @@ def test_client_transfer_trc10():
 
 @pytest.mark.asyncio
 async def test_client_transfer_trc10():
-    async with AsyncTron(network='nile') as client:
+    async with AsyncTron(network='shasta') as client:
         priv_key = PrivateKey(bytes.fromhex("ebf7c9cad1ca710553c22669fd3c7c70832e7024c1a32da69bbc5ad19dcc8992"))
 
         txb = (
             client.trx.asset_transfer(
-                "TGxv9UXRNMh4E6b33iuH1pqJfBffz6hXnV", "TVjsyZ7fYF3qLF6BQgPmTEZy1xrNNyVAAA", 1_000, token_id=1000047
+                "TGxv9UXRNMh4E6b33iuH1pqJfBffz6hXnV", TESTING_ACCOUNT2, 1_000, token_id=1000047
             )
             .memo("test transfer coin")
             .fee_limit(0)
@@ -227,7 +234,7 @@ def test_client_timeout():
     import requests.exceptions
 
     # must be a timeout
-    client = Tron(network='nile', conf={'timeout': 0.0001})
+    client = Tron(network='shasta', conf={'timeout': 0.0001})
 
     with pytest.raises(requests.exceptions.Timeout):
         client.get_block()
@@ -238,6 +245,6 @@ async def test_async_client_timeout():
     from httpx import TimeoutException
 
     # must be a timeout
-    async with AsyncTron(network='nile', conf={'timeout': 0.0001}) as client:
+    async with AsyncTron(network='shasta', conf={'timeout': 0.0001}) as client:
         with pytest.raises(TimeoutException):
             await client.get_block()

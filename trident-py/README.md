@@ -93,3 +93,12 @@ async def transfer():
 if __name__ == '__main__':
     asyncio.run(transfer())
 ```
+
+# Tests
+Run `pytest-3` to start all tests. The following three tests require setting up the environment variables `TRON_TESTING_ACCOUNT` and `TRON_TESTING_KEY` and `TRON_TESTING_ACCOUNT2`
+
+1. `test_client`
+2. `test_client_sign_offline`
+3. `test_client_update_tx`
+
+Each test run will send a few 0.000001 TRX to TRON_TESTING_ACCOUNT2 (specified at environment variable) on shasta test network.
